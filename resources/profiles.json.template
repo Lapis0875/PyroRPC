@@ -1,0 +1,10 @@
+{
+  "format": "2021.02.dev",
+  "data": [
+    {
+      "state": "state, title of your rpc.",
+      "details": "Testing basic state",
+      "large_icon": "client.{client_resource_name}"
+    }
+  ]
+}S

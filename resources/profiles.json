@@ -1,0 +1,17 @@
+{
+  "format": "2021.02.dev",
+  "data": [
+    {
+      "enabled": true,
+      "title": "PyroRPC Test!",
+      "description": "Testing basic state",
+      "large_icon": null
+    },
+    {
+      "enabled": true,
+      "title": "PyroRPC Test2!",
+      "description": "Testing basic state",
+      "large_icon": "client."
+    }
+  ]
+}
