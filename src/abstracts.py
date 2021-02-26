@@ -1,9 +1,9 @@
 from __future__ import annotations
-from abc import abstractmethod, ABC
+from abc import abstractmethod, ABCMeta
 from src.type_hints import JSON
 
 
-class JsonObject(ABC):
+class JsonObject(metaclass=ABCMeta):
     @classmethod
     @abstractmethod
     def fromJson(cls, data: JSON) -> JsonObject:
@@ -27,3 +27,23 @@ class JsonObject(ABC):
             json data of the object.
         """
         pass
+
+
+class Scriptable(metaclass=ABCMeta):
+    @property
+    def script(self):
+        """
+        Script referenced by instance of Scriptable Subclass
+
+        Returns:
+             src.script_support.Script object
+        """
+        return self._script
+
+    @abstractmethod
+    def setScript(self, script):
+        """
+        Set internal script object.
+        Args:
+            script (src.script_support.Script) object
+        """

@@ -35,6 +35,9 @@ class ProfileKeys:
     SmallText: Final[str] = 'small_text'
     Buttons: Final[str] = 'buttons'
 
+    # Script features
+    Script: Final[str] = 'script'
+
     # Format constants
     Client: Final[str] = 'client.'
 

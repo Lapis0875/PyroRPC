@@ -5,7 +5,15 @@
       "enabled": true,
       "title": "PyroRPC Test!",
       "description": "Testing basic state",
-      "large_icon": null
+      "large_icon": null,
+      "buttons": [
+        {
+          "label": "Test button",
+          "url": "https://lapis0875.github.io",
+          "script": "sample.ButtonTest"
+        }
+      ],
+      "script": "sample.Test"
     },
     {
       "enabled": true,

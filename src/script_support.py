@@ -8,13 +8,23 @@ class Script:
     def __init__(self, client) -> None:
         self._client = client
 
-    def onLoad(self) -> None:
+    def onStart(self) -> None:
+        """An event called when RPC client has been started."""
         pass
 
-    def onCalled(self, *args, **kwargs) -> None:
+    def onClose(self) -> None:
+        """An event called when RPC client has been closed."""
+        pass
+
+    def onLoad(self, profile) -> None:
+        """
+        An event called when Script is loaded.
+
+        """
         pass
 
     def onUnload(self) -> None:
+        """An event called when Script is unloaded."""
         pass
 
     # Alias support
@@ -24,6 +34,8 @@ class Script:
 
 
 class ScriptEvent(Enum):
+    OnStart = Script.onStart.__name__
+    OnClose = Script.onClose.__name__
     OnLoad = Script.onLoad.__name__
     OnUnload = Script.onUnload.__name__
 

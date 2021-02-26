@@ -6,15 +6,13 @@ from sys import stdout
 from typing import Optional, List, Tuple
 
 from pypresence import Presence     # The simple rich presence client in pypresence
-import psutil
-
-from src.script_support import ScriptEngine, ScriptEvent
+from src.script_support import ScriptEngine, ScriptEvent, Script
 from src.type_hints import JSON
-from src.abstracts import JsonObject
+from src.abstracts import JsonObject, Scriptable
 from src.constants import Resources, ButtonKeys, ProfileKeys, ConfigKeys
 
 
-class Button(JsonObject):
+class Button(JsonObject, Scriptable):
     @classmethod
     def fromJson(cls, data: JSON) -> Button:
         return cls(
@@ -27,8 +25,9 @@ class Button(JsonObject):
             label: str,
             url: str
     ) -> None:
-        self._label = label
-        self._url = url
+        self._label: str = label
+        self._url: str = url
+        self._script: Optional[Script] = None
 
     @property
     def label(self) -> str:
@@ -38,23 +37,36 @@ class Button(JsonObject):
     def url(self) -> str:
         return self._url
 
+    @property
+    def script(self) -> Script:
+        return self._script
+
+    def setScript(self, script: Script):
+        if not isinstance(script, Script):
+            raise TypeError('Only Script objects can be set as Button.script')
+        self._script = script
+
+    setScript.__doc__ = Scriptable.setScript.__doc__
+
     def toJson(self) -> JSON:
         return {
             ButtonKeys.Label: self._label,
             ButtonKeys.URL: self._url
         }
 
-class Profile(JsonObject):
+
+class Profile(JsonObject, Scriptable):
     @classmethod
     def fromJson(cls, data: JSON) -> Profile:
         return cls(
             data[ProfileKeys.Enabled],
             data[ProfileKeys.State],
             data[ProfileKeys.Details],
-            data.get('large_icon'),
-            data.get('large_text'),
-            data.get('small_icon'),
-            data.get('small_text')
+            data.get(ProfileKeys.LargeIcon),
+            data.get(ProfileKeys.LargeText),
+            data.get(ProfileKeys.SmallIcon),
+            data.get(ProfileKeys.SmallText),
+            data.get(ProfileKeys.Script)
         )
 
     def __init__(
@@ -74,15 +86,16 @@ class Profile(JsonObject):
         self._state: str = title
         self._details: str = '' if description is None else description
         # Resources
-        self._large_icon: Optional[Resources] = None if large_icon is None else ProfileKeys.parseResource(large_icon)
-        self._large_text: str = large_text
-        self._small_icon: Optional[Resources] = None if small_icon is None else ProfileKeys.parseResource(small_icon)
-        self._small_text: str = small_text
+        self._largeIcon: Optional[Resources] = None if large_icon is None else ProfileKeys.parseResource(large_icon)
+        self._largeText: str = large_text
+        self._smallIcon: Optional[Resources] = None if small_icon is None else ProfileKeys.parseResource(small_icon)
+        self._smallText: str = small_text
         # Buttons
         buttons = [Button.fromJson(data) for data in buttons]
         if len(buttons) > 2:
             buttons = buttons[:1]
         self._buttons: Tuple[Button] = tuple(buttons)
+        self._script: Optional[Script] = None
 
     @property
     def state(self) -> str:
@@ -92,16 +105,40 @@ class Profile(JsonObject):
     def details(self) -> str:
         return self._details
 
+    @property
+    def largeIcon(self) -> Resources:
+        return self._largeIcon
+
+    @property
+    def largeText(self) -> str:
+        return self._largeText
+
+    @property
+    def smallIcon(self) -> Resources:
+        return self._smallIcon
+
+    @property
+    def smallText(self) -> str:
+        return self._smallText
+
+    def setScript(self, script: Script):
+        if not isinstance(script, Script):
+            raise TypeError('Only Script objects can be set as Profile.script')
+        self._script = script
+
+    setScript.__doc__ = Scriptable.setScript.__doc__
+
     def toJson(self) -> JSON:
         return {
             ProfileKeys.Enabled: self._enabled,
             ProfileKeys.State: self._state,
             ProfileKeys.Details: self._details,
-            ProfileKeys.LargeIcon: f'{ProfileKeys.Client}{self._large_icon.name}',
-            ProfileKeys.LargeText: self._large_text,
-            ProfileKeys.SmallIcon: f'{ProfileKeys.Client}{self._large_icon.name}',
-            ProfileKeys.SmallText: self._small_text,
-            ProfileKeys.Buttons: [button.toJson() for button in self._buttons]
+            ProfileKeys.LargeIcon: f'{ProfileKeys.Client}{self._largeIcon.name}',
+            ProfileKeys.LargeText: self._largeText,
+            ProfileKeys.SmallIcon: f'{ProfileKeys.Client}{self._largeIcon.name}',
+            ProfileKeys.SmallText: self._smallText,
+            ProfileKeys.Buttons: [button.toJson() for button in self._buttons],
+            ProfileKeys.Script: self._script.__name__
         }
 
 
@@ -115,19 +152,18 @@ class LapisRPC:
         self._profiles = [Profile.fromJson(profile) for profile in profiles]
 
         self._client: Presence = Presence(self._client_id)
+        self._currentProfile: Optional[Profile] = None
         self._script_engine: ScriptEngine = ScriptEngine(self)
-        self.logger = logging.getLogger('rpc.lapis0875')
+        self.logger = logging.getLogger('pyrorpc')
         self.logger.setLevel(logging.DEBUG)
         consoleHandler = logging.StreamHandler(stdout)
         consoleHandler.setFormatter(
             logging.Formatter(
                 style='{',
-                fmt=''
+                fmt='[{asctime}] [{levelname}] {name} > {message}'
             )
         )
-        self.logger.addHandler(
-
-        )
+        self.logger.addHandler(consoleHandler)
 
     @property
     def client_id(self) -> int:
@@ -142,40 +178,22 @@ class LapisRPC:
         return self._profiles
 
     def start(self) -> None:
+        self.logger.info('[PyroRPC] Lapis0875@rpc > Starting presence client...')
         self._client.connect()
-        self._script_engine.emit(ScriptEvent.OnLoad)
+        self._script_engine.emit(ScriptEvent.OnStart)
+        self.logger.info('[PyroRPC] Lapis0875@rpc > Connected!')
 
     def updateProfile(self, profile: Profile):
+        self.logger.info('[PyroRPC] Lapis0875@rpc > Updating presence profile...')
+        self._script_engine.emit(ScriptEvent.OnUnload, self._currentProfile)
+        self._script_engine.emit(ScriptEvent.OnLoad, profile)
+        self._currentProfile = profile
         response = self._client.update(**profile.toJson())
+        self.logger.debug(f'{type(response) =}')
+        self.logger.debug(f'{response =}')
 
-
-def init():
-    print('Initialize PyroRPC[Test]')
-    RPC = Presence('')    # Initialize the Presence client
-    RPC.connect()   # Start the handshake loop
-    return RPC
-
-
-def loop(RPC: Presence):
-    print('Loop PyroRPC[Test]')
-    while True:
-        RPC.update(
-            state='Studying...',
-            details='2022 EBS 수능특강 영어',
-            large_image=Resources.Lapis0875.value,
-            large_text='Lapis0875',
-            small_image=Resources.Flame1.value,
-            small_text='Studying English'
-        )  # Updates our presence
-        sleep(15)
-
-
-def main():
-    print('Start PyroRPC[Test]')
-    RPC = init()
-    loop(RPC)
-    print('Stop PyroRPC[Test]')
-
-
-if __name__ == '__main__':
-    main()
+    def close(self) -> None:
+        self.logger.info('[PyroRPC] Lapis0875@rpc > Closing presence client...')
+        self._script_engine.emit(ScriptEvent.OnClose)
+        self._client.close()
+        self.logger.info('[PyroRPC] Lapis0875@rpc > Closed!')
