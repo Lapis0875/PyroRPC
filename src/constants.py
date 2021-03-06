@@ -3,18 +3,24 @@ from typing import Final
 
 
 class ConfigKeys:
+    # config.json
     Version: Final[str] = 'version'
     ClientID: Final[str] = 'client_id'
-    Format: Final[str] = 'format'
     Profiles: Final[str] = 'profiles'
+    # profiles.json
+    Format: Final[str] = 'format'
+    Data: Final[str] = 'data'
 
 
 class Resources(Enum):
     Campfire = 'campfire'
-    Lapis0875 = 'lapis0875'
-    Flame1 = 'flame1'
-    ReddishFire = 'reddishfire'
-    ShrubFire = 'shrubfire'
+    Profile = 'profile'
+    Default = 'default'
+    Study = 'study'
+    Cafe = 'cafe'
+    Game = 'game'
+    AFK = 'afk'
+    AwayFromKeyboard = AFK  # Alias
 
 
 class ButtonKeys:
@@ -29,9 +35,9 @@ class ProfileKeys:
     # JSON keys
     State: Final[str] = 'state'
     Details: Final[str] = 'details'
-    LargeIcon: Final[str] = 'large_icon'
+    LargeIcon: Final[str] = 'large_image'
     LargeText: Final[str] = 'large_text'
-    SmallIcon: Final[str] = 'small_icon'
+    SmallIcon: Final[str] = 'small_image'
     SmallText: Final[str] = 'small_text'
     Buttons: Final[str] = 'buttons'
 
@@ -44,7 +50,10 @@ class ProfileKeys:
     @staticmethod
     def parseResource(resource_key: str) -> Resources:
         if resource_key.startswith(ProfileKeys.Client):
-            key = resource_key.strip(ProfileKeys.Client)
-            return next(filter(lambda e: e.name == key, Resources.__members__.values()))
+            key = resource_key.replace(ProfileKeys.Client, '')
+            return tuple(filter(
+                lambda e: e.value == key,
+                Resources.__members__.values()
+            ))[0]
         else:
             raise ValueError('Currently, only resources in client can be used :(')

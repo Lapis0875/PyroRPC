@@ -1,5 +1,7 @@
 from __future__ import annotations
 from abc import abstractmethod, ABCMeta
+from typing import Optional
+
 from src.type_hints import JSON
 
 
@@ -30,13 +32,13 @@ class JsonObject(metaclass=ABCMeta):
 
 
 class Scriptable(metaclass=ABCMeta):
-    @property
-    def script(self):
+
+    def getScript(self):
         """
         Script referenced by instance of Scriptable Subclass
 
         Returns:
-             src.script_support.Script object
+             Optional[src.script_support.Script] object
         """
         return self._script
 

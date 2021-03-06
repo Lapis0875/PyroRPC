@@ -3,23 +3,69 @@
   "data": [
     {
       "enabled": true,
-      "title": "PyroRPC Test!",
-      "description": "Testing basic state",
-      "large_icon": null,
+      "details": "CPU Usage = {cpu}%, RAM Usage = {ram}%",
+      "state": "Studying...",
+      "large_image": "client.study",
+      "large_text": "Studying!",
+      "small_image": "client.profile",
+      "small_text": "Made by Lapis0875",
       "buttons": [
         {
-          "label": "Test button",
+          "label": "Developer blog",
           "url": "https://lapis0875.github.io",
+          "script": "sample.ButtonTest"
+        },
+        {
+          "label": "Project Repository",
+          "url": "https://github.com/Lapis0875/DiscordRPCClient",
           "script": "sample.ButtonTest"
         }
       ],
-      "script": "sample.Test"
+      "script": "sample.HWStatus"
     },
     {
       "enabled": true,
-      "title": "PyroRPC Test2!",
-      "description": "Testing basic state",
-      "large_icon": "client."
+      "details": "CPU Usage = {cpu}%, RAM Usage = {ram}%",
+      "state": "Having rest :D",
+      "large_image": "client.cafe",
+      "large_text": "Studying!",
+      "small_image": "client.profile",
+      "small_text": "Made by Lapis0875",
+      "buttons": [
+        {
+          "label": "Developer",
+          "url": "https://github.com/Lapis0875",
+          "script": "sample.ButtonTest"
+        },
+        {
+          "label": "Project Repository",
+          "url": "https://github.com/Lapis0875/DiscordRPCClient",
+          "script": "sample.ButtonTest"
+        }
+      ],
+      "script": "sample.HWStatus"
+    },
+    {
+      "enabled": true,
+      "details": "Away from keyboard, for now.",
+      "state": "CPU Usage (%) = {cpu},\n RAM Usage (%) = {ram}",
+      "large_image": "client.afk",
+      "large_text": "AFK",
+      "small_image": "client.profile",
+      "small_text": "Made by Lapis0875",
+      "buttons": [
+        {
+          "label": "Developer",
+          "url": "https://github.com/Lapis0875",
+          "script": "sample.ButtonTest"
+        },
+        {
+          "label": "Project Repository",
+          "url": "https://github.com/Lapis0875/DiscordRPCClient",
+          "script": "sample.ButtonTest"
+        }
+      ],
+      "script": "sample.HWStatus"
     }
   ]
 }
