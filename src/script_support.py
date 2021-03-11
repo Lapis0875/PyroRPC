@@ -4,7 +4,7 @@ import inspect
 from enum import Enum
 from os.path import sep
 from pprint import pprint
-from typing import List, Optional, Any, Union, Dict
+from typing import List, Optional, Any, Union, Dict, Callable
 
 
 class Script:
@@ -84,15 +84,56 @@ class Script:
     def register(cls, script_cls: type) -> type:
         return ScriptEngine.register(script_cls)
 
+# Remains of attempt to create ScriptEvent enumeration with `doc` attribute from function.__doc__
+# class EventEnumMeta(EnumMeta):
+#     def __new__(mcs, name, bases, attrs):
+#         obj = super().__new__(mcs, name, bases, attrs)
+#         obj._value2member_map_ = {}
+#         for m in obj:
+#             name, doc = m.value
+#             m._value_ = name
+#             m.doc = doc
+#             obj._value2member_map_[name] = m
+#
+#         return obj
+
+
+class ScriptEventWrapper:
+    mock: Callable[..., None]
+    name: str
+    doc: str
+
+    def __init__(self, func):
+        self.mock = func    # Save mock function object
+        self.name = func.__name__
+        self.doc = inspect.cleandoc(func.__doc__)
+
 
 class ScriptEvent(Enum):
-    OnStart = Script.onStart.__name__
-    OnClose = Script.onClose.__name__
-    OnLoad = Script.onLoad.__name__
-    OnUnload = Script.onUnload.__name__
-    OnReload = Script.onReload.__name__
-    OnUpdate = Script.onUpdate.__name__
-    OnClick = Script.onClick.__name__
+    OnStart = ScriptEventWrapper(Script.onStart)
+    OnClose = ScriptEventWrapper(Script.onClose)
+    OnLoad = ScriptEventWrapper(Script.onLoad)
+    OnUnload = ScriptEventWrapper(Script.onUnload)
+    OnReload = ScriptEventWrapper(Script.onReload)
+    OnUpdate = ScriptEventWrapper(Script.onUpdate)
+    OnClick = ScriptEventWrapper(Script.onClick)
+
+    @property
+    def eventName(self) -> str:
+        return self.value.name
+
+    @property
+    def doc(self) -> str:
+        return self.value.doc
+
+    # Remains of attempt to create ScriptEvent enumeration with `doc` attribute from function.__doc__
+    # OnStart = Script.onStart
+    # OnClose = Script.onClose
+    # OnLoad = Script.onLoad
+    # OnUnload = Script.onUnload
+    # OnReload = Script.onReload
+    # OnUpdate = Script.onUpdate
+    # OnClick = Script.onClick
 
 
 class ScriptEngine:
@@ -118,14 +159,16 @@ class ScriptEngine:
 
         return script_cls
 
-    def __init__(self, client):
+    def __init__(self, client, module):
         """
         Initialize ScriptEngine.
         Args:
             client (src.discordrpc.DiscordRPC) : RPC client to register scripts.
+            module : Python module object referencing 'scripts/' module.
         """
         print('Initializing ScriptEngine')
         self._client = client
+        self._module = module
         registeredScripts = getattr(self.__class__, '__scripts__', None)
         pprint(registeredScripts, indent=4)
         self._scriptsMap: Dict[str, Dict[str, Script]] = {}        # filename: {classname: cls, classname: cls, ...}
@@ -140,12 +183,32 @@ class ScriptEngine:
                 self._scriptsList.append(script)
         print('scripts list :')
         pprint(self._scriptsList)
+        print('Collecting script event listeners...')
+        self._eventMap: Dict[ScriptEvent, List[Callable[..., Any]]] = {}
+        for event in ScriptEvent.__members__.values():
+            print(f'Collecting listeners of event {event.eventName}')
+            print(event)
+            for script in self._scriptsList:
+                callback = getattr(script, event.eventName, None)
+                if callback is not None:
+                    try:
+                        self._eventMap[event].append(callback)
+                    except KeyError:
+                        self._eventMap[event] = [callback]
+        print('Collected event listener map : ')
+        pprint(self._eventMap, indent=4)
+
+    @property
+    def client(self):
+        return self._client
+
+    @property
+    def module(self):
+        return self._module
 
     def emit(self, event: ScriptEvent, *args, **kwargs):
-        for script in self._scriptsList:
-            callback = getattr(script, event.value, None)
-            if callback is not None:
-                callback(*args, **kwargs)
+        for callback in self._eventMap[event]:
+            callback(*args, **kwargs)
 
     def getScript(self, fileName: str, scriptName: str) -> Optional[Script]:
         print(f'{fileName=},{scriptName=}')

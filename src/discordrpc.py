@@ -121,7 +121,10 @@ class Profile(JsonObject, Scriptable):
     def state(self, new: str):
         if not isinstance(new, str):
             raise TypeError('Profile.state must be a str object!')
+        print(f'Debug: New value for Profile.state in Profile<details={self.details}>')
+        print(f'value = {new}')
         self._state = new
+        print(f'changed profile value to {self._state}')
 
     @property
     def largeIcon(self) -> Resources:
@@ -206,9 +209,9 @@ class DiscordRPC:
         self._client_id: int = config[ConfigKeys.ClientID]
         self._client: Presence = Presence(self._client_id)
         scriptModule = importlib.import_module('scripts')
-        self._scriptEngine: ScriptEngine = ScriptEngine(self)
+        self._scriptEngine: ScriptEngine = ScriptEngine(self, scriptModule)
 
-        with open('./resources/{}'.format(config[ConfigKeys.Profiles]), mode='rt', encoding='utf-8') as f:
+        with open('./{}'.format(config[ConfigKeys.Profiles]), mode='rt', encoding='utf-8') as f:
             profiles = json.load(f)
         self._profileFormat: str = profiles[ConfigKeys.Format]
         # self._profiles = [Profile.fromJson(profile) for profile in profiles[ConfigKeys.Data]]
@@ -245,7 +248,7 @@ class DiscordRPC:
         self._client.connect()
         self._scriptEngine.emit(ScriptEvent.OnStart)
         if self._currentProfile is None:
-            self.updateProfile(self._profiles[0])
+            self.updateProfile(self._profiles[1])
         self.logger.info('Lapis0875@rpc > Connected!')
 
     def updateProfile(self, profile: Profile):
@@ -265,8 +268,10 @@ class DiscordRPC:
         self.logger.debug(f'{response =}')
 
     def reloadProfile(self):
+        print('='*20)
         self.logger.info('Reloading presence profile...')
         self._scriptEngine.emit(ScriptEvent.OnReload, self._currentProfile)
+        print(self._currentProfile.toJson())
         response = self._client.update(**self._currentProfile.toJson())
 
     def loop(self):

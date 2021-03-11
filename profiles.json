@@ -26,9 +26,9 @@
     {
       "enabled": true,
       "details": "CPU Usage = {cpu}%, RAM Usage = {ram}%",
-      "state": "Having rest :D",
+      "state": "Programming 👨‍💻",
       "large_image": "client.cafe",
-      "large_text": "Studying!",
+      "large_text": "Programming!",
       "small_image": "client.profile",
       "small_text": "Made by Lapis0875",
       "buttons": [
