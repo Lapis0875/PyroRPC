@@ -8,7 +8,8 @@ You can apply custom rich presences on your discord profile.
 
 ![example](resources/previews/rich_presence.png)
 ### 2. GUI based application (WIP)
-PyroRPC is GUI-based application, so users can easily interact with it.
+~~PyroRPC is GUI-based application, so users can easily interact with it.~~
+PyroRPC is not maintained (for now), so no GUI features are scheduled in few years. But, I'm still planning it for someday.
 
 ### 3. Script features (Beta)
 PyroRPC supports scripting with Python, which help users to implement fully customized features on there Rich Presense!
